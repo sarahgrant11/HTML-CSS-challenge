@@ -1,1 +1,1 @@
-# HTML-CSS-challenge
+# web-design-challenge
