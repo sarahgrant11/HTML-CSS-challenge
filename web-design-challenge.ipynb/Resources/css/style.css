@@ -1,0 +1,22 @@
+.link-unstyled, .link-unstyled:link, .link-unstyled:hover {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  
+  navbar-default {
+      background-color: white;
+      background-image:none;
+      background-repeat:no-repeat;
+  }
+  
+  .navbar-default .navbar-brand {
+      background-color:  #068b8b;
+      color: white;
+      font-weight: bold;
+      font-size:xx-large;
+      font-family: garamond;
+      text-align: center;
+      position: relative;
+      left: 80px
+  
+  }

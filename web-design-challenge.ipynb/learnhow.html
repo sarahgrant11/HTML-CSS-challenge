@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+  <title>Web Visualizations</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="assets\css\style.css">
+</head>
+
+<body>
+<!--Navigation bar-->
+    <div class="navigation">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand"  href="index.html">Web Visualizations</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="learnhow.html">Learn How</a>
+              </li>
+              <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Plots
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                      <a class="dropdown-item" href="maxtemp.html">Max Temperature</a>
+                      <a class="dropdown-item" href="humidity.html">Humidity</a>
+                      <a class="dropdown-item" href="cloudiness.html">Cloudiness</a>
+                      <a class="dropdown-item" href="windspeed.html">Wind Speed</a>
+                  </div>
+              </li>  
+              <li class="nav-item">
+                <a class="nav-link" href="comparison.html">Comparison</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="data.html">Data</a>
+              </li>
+            </ul>
+          </div>
+      </nav>
+  </div>
+
+<!--Page content-->
+<!-- Loading mathjax macro -->
+<!-- Load mathjax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS_HTML"></script>
+<!-- MathJax configuration -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true,
+        processEnvironments: true
+    },
+    // Center justify equations in code and markdown cells. Elsewhere
+    // we use CSS to left justify single line equations in code cells.
+    displayAlign: 'center',
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}},
+        linebreaks: { automatic: true }
+    }
+});
+</script>
+<!-- End of mathjax configuration --></head>
+
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="WeatherPy">Jupyter Notebook Process<a class="anchor-link" href="WeatherPy.html">&#182;</a></h1>
+<p>Here's how I generated a random set of latitude and longitudes using Numpy, found the nearest cities using CitiPY, then pulled weather data via Open Weather Map API. Analyzed with Pandas and plotted with Matplotlib.</p>
+<p><a href="WeatherPy.html" target="_blank">Fully editable Jupyter Notebook available here</a></p>
+<hr>
+<h4 id="Random-City-Generator-and-Weather-Analysis-by-Latitudes">Random City Generator and Weather Analysis by Latitudes<a class="anchor-link" href="#Random-City-Generator-and-Weather-Analysis-by-Latitudes">&#182;</a></h4>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Dependencies and Setup</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">linregress</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="c1"># Import API key</span>
+<span class="kn">from</span> <span class="nn">api_keys</span> <span class="kn">import</span> <span class="n">weather_api_key</span>
+
+<span class="c1"># Incorporated citipy to determine city based on latitude and longitude</span>
+<span class="c1">#install from command line before opening jupyter notebook as &#39;pip install citipy&#39;</span>
+<span class="kn">from</span> <span class="nn">citipy</span> <span class="kn">import</span> <span class="n">citipy</span>
+
+<span class="c1"># Output File (CSV)</span>
+<span class="n">output_data_file</span> <span class="o">=</span> <span class="s2">&quot;output_data/cities.csv&quot;</span>
+
+<span class="c1"># Range of latitudes and longitudes</span>
+<span class="n">lat_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>
+<span class="n">lng_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Generate-Cities-List">Generate Cities List<a class="anchor-link" href="#Generate-Cities-List">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># List for holding lat_lngs and cities</span>
+<span class="n">lat_lngs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">cities</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># Create a set of random lat and lng combinations</span>
+<span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">lat_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lat_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="mi">1500</span><span class="p">)</span>
+<span class="n">lngs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">lng_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lng_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="mi">1500</span><span class="p">)</span>
+<span class="n">lat_lngs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lats</span><span class="p">,</span> <span class="n">lngs</span><span class="p">)</span>
+
+<span class="c1"># Identify nearest city for each lat, lng combination</span>
+<span class="k">for</span> <span class="n">lat_lng</span> <span class="ow">in</span> <span class="n">lat_lngs</span><span class="p">:</span>
+<span class="n">city</span> <span class="o">=</span> <span class="n">citipy</span><span class="o">.</span><span class="n">nearest_city</span><span class="p">(</span><span class="n">lat_lng</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lat_lng</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">city_name</span>
+
+<span class="c1"># If the city is unique, then add it to a our cities list</span>
+<span class="k">if</span> <span class="n">city</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cities</span><span class="p">:</span>
+    <span class="n">cities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">city</span><span class="p">)</span>
+
+<span class="c1"># Print the city count to confirm sufficient count</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">cities</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[2]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>611</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Perform-API-Calls">Perform API Calls<a class="anchor-link" href="#Perform-API-Calls">&#182;</a></h3><ul>
+<li>Perform a weather check on each city using a series of successive API calls.</li>
+<li>Include a print log of each city as it'sbeing processed (with the city number and city name).</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#create url for query with imperial units and city at the end</span>
+<span class="c1">#url from https://openweathermap.org/appid</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;http://api.openweathermap.org/data/2.5/weather?id=524901&quot;</span>
+<span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;imperial&quot;</span>
+<span class="n">query_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{url}</span><span class="s2">&amp;appid=</span><span class="si">{weather_api_key}</span><span class="s2">&amp;units=</span><span class="si">{unit}</span><span class="s2">&amp;q=&quot;</span>
+
+<span class="c1"># Lists for results</span>
+<span class="n">lat</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">foundCities</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">humidity</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">cloudiness</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">windSpeed</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">date</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">country</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">city</span> <span class="ow">in</span> <span class="n">cities</span><span class="p">:</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">query_url</span> <span class="o">+</span> <span class="n">city</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">lat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;coord&quot;</span><span class="p">][</span><span class="s2">&quot;lat&quot;</span><span class="p">])</span>
+    <span class="n">lon</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;coord&quot;</span><span class="p">][</span><span class="s2">&quot;lon&quot;</span><span class="p">])</span>
+    <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">][</span><span class="s2">&quot;temp_max&quot;</span><span class="p">])</span>
+    <span class="n">humidity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">][</span><span class="s2">&quot;humidity&quot;</span><span class="p">])</span>
+    <span class="n">cloudiness</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;clouds&quot;</span><span class="p">][</span><span class="s2">&quot;all&quot;</span><span class="p">])</span>
+    <span class="n">windSpeed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;wind&quot;</span><span class="p">][</span><span class="s2">&quot;speed&quot;</span><span class="p">])</span>
+    <span class="n">date</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">])</span>
+    <span class="n">country</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;sys&quot;</span><span class="p">][</span><span class="s2">&quot;country&quot;</span><span class="p">])</span>
+    <span class="n">foundCities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">city</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;City processed: </span><span class="si">{city}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;City NOT found: </span><span class="si">{city}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
